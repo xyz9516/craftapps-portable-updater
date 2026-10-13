@@ -53,6 +53,9 @@ def package(app, platform, version, source, out):
     payload.mkdir(parents=True)
     shutil.copy2(release / ('craft-runtime' + suffix), payload / ('craft-runtime' + suffix))
     app_bin = source / 'target/release' / (app + suffix)
+    check = subprocess.run([str(app_bin), '--version'], capture_output=True, text=True, check=True, timeout=30)
+    if app not in check.stdout.lower():
+        raise ValueError('Application version smoke check failed')
     if suffix:
         executable = app + suffix
         shutil.copy2(app_bin, payload / executable)
