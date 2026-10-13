@@ -23,6 +23,10 @@ jobs:
       - run: cargo test --locked
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: python -m unittest discover -s tests
+      - name: Test native launchers after relocation
+        run: |
+          cargo build --release --locked
+          python scripts/smoke_launcher.py
       - name: Apply and test PdfCraft patches
         run: |
           python scripts/prepare.py pdfcraft
