@@ -77,6 +77,8 @@ jobs:
           path: dist
           merge-multiple: true
       - run: python3 -m pip install 'cryptography>=46,<49'
+      - name: Create source snapshot
+        run: git archive --format=zip HEAD -o dist/craftapps-portable-updater-source.zip
       - name: Sign complete manifest
         env:
           UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
@@ -85,5 +87,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git archive --format=zip HEAD -o dist/craftapps-portable-updater-source.zip
           gh release create "v$RELEASE_VERSION" dist/*.zip dist/channel.json dist/channel.sig dist/SHA256SUMS.txt --draft --target "$GITHUB_SHA" --title "CraftApps Portable $RELEASE_VERSION" --notes-file docs/release-notes.md
