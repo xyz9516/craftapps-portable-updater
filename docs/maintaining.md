@@ -43,6 +43,7 @@ new upstream code, edit the full commit pins, revalidate patches, and release.
 
 The update endpoint is fixed to xyz9516/craftapps-portable-updater. Forks must
 change that endpoint, generate their own signing key, and rebuild the runtime.
+See the bilingual [fork setup guide](forking.md) for the full file checklist.
 
 ## Testing without a published release
 

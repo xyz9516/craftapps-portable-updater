@@ -87,6 +87,14 @@ See [the maintainer guide](docs/maintaining.md) for local builds, upstream updat
 
 The Release workflow requires all six application/platform packages and a matching signing key before publishing an update manifest. New upstream commits or local patches reach users **after** a new release is built and published; edits in a working tree are not sent directly to installations.
 
+## Make your own fork with automatic updates
+
+You can reuse this project to package your own PhotoCraft/PdfCraft forks and publish updates from your own GitHub repository. The launcher, updater, patches, and release workflow are included, so you can adapt the existing setup instead of building an updater from scratch.
+
+Change the release repository in `src/lib.rs` and `scripts/package.py`, point `upstreams.json` at your own application forks and full commit hashes, and generate your own release-signing key. Adjust package identity and documentation, then rebuild and publish through your fork's Actions workflow. Your users will receive your application's changes, patches, and versioned updater fixes from **your** release channel.
+
+See the [fork setup guide / Fork 設定指南](docs/forking.md) for the exact files and steps. This is a source-level setup, not an end-user channel switch: existing installations remain tied to the repository and verification key embedded when they were built.
+
 ## Licensing and attribution
 
 Our launcher, updater, and packaging code are [MIT licensed](LICENSE). PhotoCraft and PdfCraft retain their upstream MIT OR Apache-2.0 licensing; dependencies, fonts, and other assets retain their respective licenses. Packages carry upstream license and attribution files plus font notices. The ArtCraft name and artwork are not covered by those open-source licenses; restricted branding is excluded from our modified PdfCraft application output. This project makes no claim to those trademarks.
