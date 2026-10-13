@@ -41,6 +41,8 @@ jobs:
         shell: bash
         run: |
           python -c 'import os,re; assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+",os.environ["RELEASE_VERSION"])'
+          git fetch --no-tags origin "refs/tags/v$RELEASE_VERSION:refs/tags/v$RELEASE_VERSION"
+          test "$(git rev-parse "v$RELEASE_VERSION^{commit}")" = "$GITHUB_SHA"
       - name: Rust toolchain
         run: rustup toolchain install 1.95.0 --profile minimal --no-self-update
       - run: cargo test --locked
@@ -87,4 +89,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "v$RELEASE_VERSION" dist/*.zip dist/channel.json dist/channel.sig dist/SHA256SUMS.txt --draft --target "$GITHUB_SHA" --title "CraftApps Portable $RELEASE_VERSION" --notes-file docs/release-notes.md
+          gh release create "v$RELEASE_VERSION" dist/*.zip dist/channel.json dist/channel.sig dist/SHA256SUMS.txt --draft --verify-tag --title "CraftApps Portable $RELEASE_VERSION" --notes-file docs/release-notes.md

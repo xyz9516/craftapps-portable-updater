@@ -28,7 +28,19 @@ directory. Prepared builds include the upstream-pinned craft-fonts repository.
 3. Set repository Actions secret `UPDATE_SIGNING_KEY` to the hex-encoded 32-byte
    Ed25519 seed matching `release-public-key.txt`. Keep an offline backup. Never
    print the seed or put it into an issue, workflow artifact, or Git history.
-4. Run the Release workflow with a strictly increasing SemVer, e.g. `0.1.0`.
+4. Push a tag for the exact tested commit, then dispatch the Release workflow
+   **from that tag** with the matching, strictly increasing SemVer. For example:
+
+   ```sh
+   git tag v0.1.1 HEAD
+   git push origin v0.1.1
+   gh workflow run release.yml --ref v0.1.1 -f version=0.1.1
+   ```
+
+   Each build verifies the tag matches its checkout. An existing tag also lets
+   release creation omit `target_commitish`, avoiding the extra workflow-write
+   permission GitHub can require when an older commit differs from current
+   default-branch workflows. See [GitHub's release API notes](https://docs.github.com/en/rest/releases/releases#create-a-release).
 5. All six builds must succeed. The workflow creates a **draft** Release with ZIPs,
    checksums, source snapshot and signed `channel.json` / `channel.sig`.
 6. Review the draft and smoke-test downloaded artifacts before publishing it.
