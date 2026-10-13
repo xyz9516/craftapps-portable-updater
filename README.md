@@ -24,8 +24,10 @@ The initial release pipeline is being validated. Downloadable builds, when publi
 | Platform | Package | Status |
 | --- | --- | --- |
 | Windows x64 | Portable ZIP | Build pipeline implemented; first release validation in progress |
-| macOS Apple Silicon | `.app` bundles in a portable ZIP | CI build target; hardware validation pending |
+| macOS Apple Silicon (M-series) | `.app` bundles in a portable ZIP | CI build target; hardware validation pending |
 | macOS Intel | `.app` bundles in a portable ZIP | CI build target; hardware validation pending |
+
+For an M-series Mac, choose `macos-arm64`; for a Mac with an Intel processor, choose `macos-x64`. Check **Apple menu → About This Mac** if unsure. These are processor architectures, not old/new macOS version labels.
 
 Each platform has separate PhotoCraft and PdfCraft downloads. macOS test builds use ad-hoc signatures and **are not Apple Developer ID signed or notarized**. Gatekeeper can block them; see [macOS notes](docs/macos.md). Windows community builds also do not have a publisher code-signing certificate.
 

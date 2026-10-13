@@ -24,8 +24,10 @@ PhotoCraft 與 PdfCraft 的原始碼持續快速發展。在本專案目前追�
 | 平台 | 格式 | 狀態 |
 | --- | --- | --- |
 | Windows x64 | Portable ZIP | 已實作建置流程，正在驗證首次發布 |
-| macOS Apple Silicon | 含 `.app` 的 Portable ZIP | 已配置 CI 建置，待實機驗證 |
+| macOS Apple Silicon（M 系列） | 含 `.app` 的 Portable ZIP | 已配置 CI 建置，待實機驗證 |
 | macOS Intel | 含 `.app` 的 Portable ZIP | 已配置 CI 建置，待實機驗證 |
+
+M 系列晶片的 Mac 請選 `macos-arm64`；Intel 處理器的 Mac 請選 `macos-x64`。不確定時，可在「 → 關於這台 Mac」查看晶片／處理器。這是處理器架構的區別，不是 macOS 系統版本的新舊之分。
 
 PhotoCraft 與 PdfCraft 分別提供下載包。Mac 測試版採 ad-hoc 簽章，**沒有 Apple Developer ID 簽章，也未經 Apple 公證**，可能被 Gatekeeper 攔截，請參閱 [macOS 說明](docs/macos.md)。Windows 社群版本也尚未使用發行者程式碼簽章憑證。
 

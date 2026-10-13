@@ -22,8 +22,9 @@ directory. Prepared builds include the upstream-pinned craft-fonts repository.
 ## Publishing a release
 
 1. Review upstream pins, patch conflicts, third-party licenses and README status.
-2. Run local tests and require CI to pass. Test the resulting portable build on
-   Windows; Mac hardware testing remains a separate release criterion.
+2. Run local tests and require CI to pass. Smoke-test the downloaded Windows
+   packages. Record Mac CI and real-hardware coverage separately; packages without
+   real-hardware validation must remain explicitly labeled experimental.
 3. Set repository Actions secret `UPDATE_SIGNING_KEY` to the hex-encoded 32-byte
    Ed25519 seed matching `release-public-key.txt`. Keep an offline backup. Never
    print the seed or put it into an issue, workflow artifact, or Git history.
