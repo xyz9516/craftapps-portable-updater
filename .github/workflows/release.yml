@@ -1,0 +1,89 @@
+name: Build portable release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'New release SemVer (without v), e.g. 0.1.0'
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: portable-release
+  cancel-in-progress: false
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [photocraft, pdfcraft]
+        include:
+          - os: windows-latest
+            platform: windows-x64
+          - os: macos-15
+            platform: macos-arm64
+          - os: macos-15-intel
+            platform: macos-x64
+        os: [windows-latest, macos-15, macos-15-intel]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 120
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+      APP_NAME: ${{ matrix.app }}
+      TARGET_PLATFORM: ${{ matrix.platform }}
+      MACOSX_DEPLOYMENT_TARGET: '11.0'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.13'
+      - name: Validate version
+        shell: bash
+        run: |
+          python -c 'import os,re; assert re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+",os.environ["RELEASE_VERSION"])'
+      - name: Rust toolchain
+        run: rustup toolchain install 1.95.0 --profile minimal --no-self-update
+      - run: cargo test --locked
+      - run: cargo build --release --locked
+      - name: Build application with pinned patches
+        shell: bash
+        run: python scripts/prepare.py "$APP_NAME" --build
+      - name: Test PdfCraft patch
+        if: matrix.app == 'pdfcraft'
+        run: python scripts/test_patches.py work/pdfcraft
+      - name: Package
+        shell: bash
+        run: python scripts/package.py "$APP_NAME" --platform "$TARGET_PLATFORM" --version "$RELEASE_VERSION" --source "work/$APP_NAME"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: ${{ matrix.app }}-${{ matrix.platform }}
+          path: |
+            dist/*.zip
+            dist/*.json
+          compression-level: 0
+          retention-days: 14
+  draft:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      RELEASE_VERSION: ${{ inputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          path: dist
+          merge-multiple: true
+      - run: python3 -m pip install 'cryptography>=46,<49'
+      - name: Sign complete manifest
+        env:
+          UPDATE_SIGNING_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: python3 scripts/sign_release.py --version "$RELEASE_VERSION"
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git archive --format=zip HEAD -o dist/craftapps-portable-updater-source.zip
+          gh release create "v$RELEASE_VERSION" dist/*.zip dist/channel.json dist/channel.sig dist/SHA256SUMS.txt --draft --target "$GITHUB_SHA" --title "CraftApps Portable $RELEASE_VERSION" --notes-file docs/release-notes.md

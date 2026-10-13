@@ -1,0 +1,23 @@
+CraftApps Portable - community builds maintained by xyz9516
+
+Extract the ENTIRE ZIP to a writable directory before launching.
+Windows: open PhotoCraft.exe or PdfCraft.exe.
+Mac: open the top-level PhotoCraft.app or PdfCraft.app.
+Keep the launcher, state.json, versions/, and data/ together when moving it.
+
+The current application opens immediately; updates are checked in the background.
+Verified updates take effect on the NEXT launch. Open work is never terminated.
+Settings and recovery files are under data/. Back up this folder regularly.
+
+Create updates-paused.txt to pause background updates. Remove it to resume.
+Run the launcher with --rollback to select the previous build and pause updates.
+Old version directories are retained; rollback does not undo data migrations.
+Logs are under logs/. Never send unredacted logs or personal documents publicly.
+
+Mac packages are ad-hoc signed, NOT Apple Developer ID signed or notarized.
+Gatekeeper may prevent opening; read the macOS notes before using test builds.
+Windows builds do not have publisher code-signing certificates either.
+
+This project is independent of the upstream authors and their official releases.
+Docs: https://github.com/xyz9516/craftapps-portable-updater
+Traditional Chinese: README.zh-TW.md in that repository.

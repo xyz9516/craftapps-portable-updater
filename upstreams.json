@@ -1,0 +1,14 @@
+{
+  "photocraft": {
+    "repository": "storytold/photocraft",
+    "commit": "6f85054288a564f9fbbccb99268ffdb34e581584",
+    "title": "PhotoCraft",
+    "features": ["heif"]
+  },
+  "pdfcraft": {
+    "repository": "storytold/pdfcraft",
+    "commit": "7437bde378f43856eada40af25b983812e615e8a",
+    "title": "PdfCraft",
+    "features": []
+  }
+}

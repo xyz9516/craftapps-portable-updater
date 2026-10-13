@@ -1,0 +1,47 @@
+--- a/crates/ui-egui/src/portable.rs
++++ b/crates/ui-egui/src/portable.rs
+@@ -49,6 +49,9 @@
+ pub fn current() -> &'static Portable {
+     static CURRENT: OnceLock<Portable> = OnceLock::new();
+     CURRENT.get_or_init(|| {
++        if let Some(dir) = std::env::var_os("PDFCRAFT_CONFIG_DIR").filter(|v| !v.is_empty()) {
++            return resolve_override(&PathBuf::from(dir));
++        }
+         let exe = std::env::current_exe().ok();
+         let portable = resolve(exe.as_deref().and_then(Path::parent));
+         if let Some(dir) = &portable.dir {
+@@ -59,6 +62,16 @@
+         }
+         portable
+     })
++}
++
++/// Explicit data directory for the community portable launcher across upgrades.
++fn resolve_override(dir: &Path) -> Portable {
++    match ensure_writable(dir) {
++        Ok(()) => Portable { dir: Some(dir.to_path_buf()), unwritable: None },
++        Err(error) => Portable { dir: None, unwritable: Some(Unwritable {
++            marker: PathBuf::from("PDFCRAFT_CONFIG_DIR"), folder: dir.to_path_buf(), error: error.to_string(),
++        }) },
++    }
+ }
+ 
+ /// The portable data folder, when portable mode is on.
+@@ -104,6 +117,17 @@
+         let _ = std::fs::remove_dir_all(&d);
+         std::fs::create_dir_all(&d).unwrap();
+         d
++    }
++
++    #[test]
++    fn override_directory_survives_version_folder_changes() {
++        let dir = temp("override");
++        std::fs::create_dir_all(&dir).unwrap();
++        std::fs::write(dir.join("app.ron"), "settings").unwrap();
++        let resolved = resolve_override(&dir);
++        assert_eq!(resolved.dir.as_deref(), Some(dir.as_path()));
++        assert_eq!(std::fs::read_to_string(dir.join("app.ron")).unwrap(), "settings");
++        let _ = std::fs::remove_dir_all(dir);
+     }
+ 
+     #[test]
