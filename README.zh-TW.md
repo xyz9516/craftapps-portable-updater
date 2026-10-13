@@ -19,13 +19,17 @@ PhotoCraft 與 PdfCraft 的原始碼持續快速發展。在本專案目前追�
 
 ## 目前狀態與下載
 
-首次發布流程正在驗證中。可下載的發行版只會出現在本倉庫的 **Releases** 頁面；CI 編譯成功並不代表應用程式的所有功能都已完成測試。
+**[下載最新版本](https://github.com/xyz9516/craftapps-portable-updater/releases/latest)**：選擇 `*-portable.zip`，完整解壓縮後開啟啟動器。同一份 ZIP 也供自動更新使用，不需要另外選擇或安裝 `update.zip`。
 
-| 平台 | 格式 | 狀態 |
-| --- | --- | --- |
-| Windows x64 | Portable ZIP | 已實作建置流程，正在驗證首次發布 |
-| macOS Apple Silicon（M 系列） | 含 `.app` 的 Portable ZIP | 已配置 CI 建置，待實機驗證 |
-| macOS Intel | 含 `.app` 的 Portable ZIP | 已配置 CI 建置，待實機驗證 |
+下方連結對應整合版 **0.1.1**。這是我們的更新器與打包版本號；內含程式保留上游版本：**PhotoCraft 0.8.2**、**PdfCraft 0.7.1**。發行檔放在 GitHub 的 Releases 頁面，不是原始碼中的資料夾。
+
+| 平台 | PhotoCraft | PdfCraft | 驗證狀態 |
+| --- | --- | --- | --- |
+| Windows x64 | [下載 ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/photocraft-windows-x64-0.1.1-portable.zip) | [下載 ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/pdfcraft-windows-x64-0.1.1-portable.zip) | 已測試程式啟動、便攜設定及 PdfCraft 開啟 PDF |
+| macOS Apple Silicon（M 系列） | [下載 ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/photocraft-macos-arm64-0.1.1-portable.zip) | [下載 ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/pdfcraft-macos-arm64-0.1.1-portable.zip) | 實驗版；已通過原生 CI 檢查，待實機驗證 |
+| macOS Intel | [下載 ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/photocraft-macos-x64-0.1.1-portable.zip) | [下載 ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/pdfcraft-macos-x64-0.1.1-portable.zip) | 實驗版；已通過原生 CI 檢查，待實機驗證 |
+
+上述為基本運作測試，並非所有功能的完整驗證。原始碼壓縮檔、更新清單與校驗檔供開發或驗證使用；一般使用者只需下載對應程式的 portable ZIP。
 
 M 系列晶片的 Mac 請選 `macos-arm64`；Intel 處理器的 Mac 請選 `macos-x64`。不確定時，可在「 → 關於這台 Mac」查看晶片／處理器。這是處理器架構的區別，不是 macOS 系統版本的新舊之分。
 
@@ -59,7 +63,7 @@ PdfCraft-Portable/
   PdfCraft.exe              # Mac 使用 PdfCraft.app/
   state.json                # 目前版本與上一版
   versions/
-    0.1.0/
+    0.1.1/
       build.json            # 上游提交、patch 摘要與更新器版本
       craft-runtime.exe     # 版本化啟動器與更新器
       pdfcraft.exe          # Mac 使用應用程式 bundle

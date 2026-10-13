@@ -19,13 +19,17 @@ Updates include the applications, our maintained patches, and the versioned laun
 
 ## Status and downloads
 
-The initial release pipeline is being validated. Downloadable builds, when published, appear only on this repository's **Releases** page. A passing CI build is not a claim that every application feature has been tested.
+**[Download the latest release](https://github.com/xyz9516/craftapps-portable-updater/releases/latest)** — download a `*-portable.zip`, extract it, and open the launcher. The same ZIP is used by automatic updates; there is no separate `update.zip` to choose or install.
 
-| Platform | Package | Status |
-| --- | --- | --- |
-| Windows x64 | Portable ZIP | Build pipeline implemented; first release validation in progress |
-| macOS Apple Silicon (M-series) | `.app` bundles in a portable ZIP | CI build target; hardware validation pending |
-| macOS Intel | `.app` bundles in a portable ZIP | CI build target; hardware validation pending |
+The links below are for distribution **0.1.1**. This is our updater and packaging version; the bundled applications retain their upstream versions: **PhotoCraft 0.8.2** and **PdfCraft 0.7.1**. Releases are on GitHub's Releases page, not in a source-code folder.
+
+| Platform | PhotoCraft | PdfCraft | Validation |
+| --- | --- | --- | --- |
+| Windows x64 | [Download ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/photocraft-windows-x64-0.1.1-portable.zip) | [Download ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/pdfcraft-windows-x64-0.1.1-portable.zip) | Application startup and portable settings tested; PdfCraft file opening tested |
+| macOS Apple Silicon (M-series) | [Download ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/photocraft-macos-arm64-0.1.1-portable.zip) | [Download ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/pdfcraft-macos-arm64-0.1.1-portable.zip) | Experimental; native CI checks, real-hardware validation pending |
+| macOS Intel | [Download ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/photocraft-macos-x64-0.1.1-portable.zip) | [Download ZIP](https://github.com/xyz9516/craftapps-portable-updater/releases/download/v0.1.1/pdfcraft-macos-x64-0.1.1-portable.zip) | Experimental; native CI checks, real-hardware validation pending |
+
+These are smoke tests, not a full application feature audit. Source archives and manifest/checksum files are for developers or verification; ordinary users only need their application's portable ZIP.
 
 For an M-series Mac, choose `macos-arm64`; for a Mac with an Intel processor, choose `macos-x64`. Check **Apple menu → About This Mac** if unsure. These are processor architectures, not old/new macOS version labels.
 
@@ -59,12 +63,12 @@ PdfCraft-Portable/
   PdfCraft.exe              # Windows entry point; macOS uses PdfCraft.app/
   state.json                # Current and previous versions
   versions/
-    0.1.0/
+    0.1.1/
       build.json            # Upstream commit, patch digest, updater revision
       craft-runtime.exe     # Versioned launcher and updater
       pdfcraft.exe          # macOS uses an application bundle
       licenses/
-  data/                     # Settings and recovery data; never in update archives
+  data/                     # Local settings and recovery data; retained during updates
   logs/
 ```
 
