@@ -1,4 +1,4 @@
-"""Produce relocatable initial ZIPs and versioned update payloads (no user data)."""
+"""Produce one relocatable portable ZIP for both installation and automatic updates."""
 import argparse
 import hashlib
 import json
@@ -10,6 +10,9 @@ import subprocess
 import zipfile
 from prepare import ROOT, patch_digest
 
+REPOSITORY = 'xyz9516/craftapps-portable-updater'
+BUNDLE_PREFIX = 'io.github.xyz9516'
+
 
 def archive(source, destination):
     with zipfile.ZipFile(destination, 'w', zipfile.ZIP_DEFLATED, compresslevel=6) as z:
@@ -20,7 +23,7 @@ def archive(source, destination):
                 z.write(file, file.relative_to(source).as_posix())
 
 
-def bundle(path, title, executable, identifier, icon=None):
+def bundle(path, title, executable, identifier, icon=None, version='0.1.0'):
     contents = path / 'Contents'
     (contents / 'MacOS').mkdir(parents=True)
     (contents / 'Resources').mkdir()
@@ -28,7 +31,7 @@ def bundle(path, title, executable, identifier, icon=None):
     (contents / 'MacOS' / title).chmod(0o755)
     info = {'CFBundleExecutable': title, 'CFBundleName': title, 'CFBundleDisplayName': title,
             'CFBundleIdentifier': identifier, 'CFBundlePackageType': 'APPL',
-            'CFBundleVersion': '1', 'CFBundleShortVersionString': '0.1.0',
+            'CFBundleVersion': version, 'CFBundleShortVersionString': version,
             'LSMinimumSystemVersion': '11.0', 'NSHighResolutionCapable': True}
     if icon:
         shutil.copy2(icon, contents / 'Resources' / 'AppIcon.icns')
@@ -62,8 +65,8 @@ def package(app, platform, version, source, out):
         shutil.copy2(release / ('craft-launcher' + suffix), tree / (title + suffix))
     else:
         executable = f'{title}.app/Contents/MacOS/{title}'
-        bundle(payload / (title + '.app'), title, app_bin, f'io.github.xyz9516.{app}.portable.runtime', source / 'assets/app-icon' / (app + '.icns'))
-        bundle(tree / (title + '.app'), title, release / 'craft-launcher', f'io.github.xyz9516.{app}.portable', source / 'assets/app-icon' / (app + '.icns'))
+        bundle(payload / (title + '.app'), title, app_bin, f'{BUNDLE_PREFIX}.{app}.portable.runtime', source / 'assets/app-icon' / (app + '.icns'), check.stdout.split()[1])
+        bundle(tree / (title + '.app'), title, release / 'craft-launcher', f'{BUNDLE_PREFIX}.{app}.portable', source / 'assets/app-icon' / (app + '.icns'), version)
         (payload / 'craft-runtime').chmod(0o755)
         subprocess.run(['codesign', '--force', '--sign', '-', '--timestamp=none', str(payload / 'craft-runtime')], check=True)
     commit = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip()
@@ -87,12 +90,22 @@ def package(app, platform, version, source, out):
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(file, dest)
     shutil.copy2(ROOT / 'docs/PORTABLE.txt', tree / 'START-HERE.txt')
-    update_name = f'{app}-{platform}-{version}-update.zip'
-    archive(payload, out / update_name)
-    archive(tree, out / f'{app}-{platform}-{version}-portable.zip')
-    path = out / update_name
+    finish_package(app, platform, version, tree, payload, out)
+
+
+def finish_package(app, platform, version, tree, payload, out):
+    # Compatibility metadata allows the original v0.1.0 updater to install the
+    # complete portable ZIP too. New runtimes select only the inner payload.
+    build = json.loads((payload / 'build.json').read_text())
+    suffix = '.exe' if platform == 'windows-x64' else ''
+    compat = dict(build, executable=f'versions/{payload.name}/{build["executable"]}')
+    (tree / 'build.json').write_text(json.dumps(compat, indent=2) + '\n')
+    shutil.copy2(payload / ('craft-runtime' + suffix), tree / ('craft-runtime' + suffix))
+    name = f'{app}-{platform}-{version}-portable.zip'
+    archive(tree, out / name)
+    path = out / name
     metadata = {'app': app, 'platform': platform,
-                'url': f'https://github.com/xyz9516/craftapps-portable-updater/releases/download/v{version}/{update_name}',
+                'url': f'https://github.com/{REPOSITORY}/releases/download/v{version}/{name}',
                 'sha256': hashlib.sha256(path.read_bytes()).hexdigest(), 'size': path.stat().st_size}
     (out / f'{app}-{platform}.json').write_text(json.dumps(metadata, indent=2))
 

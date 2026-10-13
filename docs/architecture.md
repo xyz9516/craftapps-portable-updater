@@ -7,7 +7,7 @@ subsystem; process spawning uses no shell. The same Rust code builds on macOS.
 The versioned runtime launches the application and a detached background update
 check. It supplies the portable `data/` path to both applications. PdfCraft needs
 our data-directory patch; PhotoCraft already supports an override. The runtime
-and application are in the same update ZIP, so updater patches advance with app
+and application are in the same portable ZIP, so updater patches advance with app
 patches. The tiny bootstrap protocol is deliberately fixed. A future incompatible
 bootstrap requires a full package migration and cannot be advertised as an
 automatic update to protocol-v1 installations.
@@ -24,6 +24,18 @@ paths, traversal, alternate data streams, symlinks, duplicate file writes and
 excessive sizes. A single file lock serializes updates and rollback. The active
 pointer changes only after the entire payload passes checks. Running versions
 are never modified, and app data is never extracted into the installation root.
+
+From 0.1.1 onward there is one portable ZIP per app/platform, used for both first
+installation and updates. The runtime selects `versions/<current>` inside the
+staged package and installs only that payload. Root compatibility metadata and a
+runtime copy let the original 0.1.0 updater consume the same ZIP as well; these
+files are not alternate downloads. A 0.1.0 client may retain one extra wrapper
+directory during its first upgrade, then runs the new updater normally.
+
+The distribution version (such as 0.1.1) identifies this project's updater and
+packaging release. Upstream application versions remain independent; their exact
+source commits are recorded in every build. A packaging-only revision can reuse
+previously signed application binaries only if upstream and patch digests match.
 
 The signing private key is a GitHub Actions secret, never an artifact or source
 file. Maintainers must retain an offline backup; the initial public key is pinned

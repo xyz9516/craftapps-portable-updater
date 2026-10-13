@@ -6,6 +6,11 @@ on:
         description: 'New release SemVer (without v), e.g. 0.1.0'
         required: true
         type: string
+      reuse_release:
+        description: 'Optional signed base release for updater-only repackaging (unchanged application sources/patches)'
+        required: false
+        default: ''
+        type: string
 permissions:
   contents: read
 concurrency:
@@ -31,6 +36,7 @@ jobs:
       RELEASE_VERSION: ${{ inputs.version }}
       APP_NAME: ${{ matrix.app }}
       TARGET_PLATFORM: ${{ matrix.platform }}
+      BASE_RELEASE: ${{ inputs.reuse_release }}
       MACOSX_DEPLOYMENT_TARGET: '11.0'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -48,14 +54,24 @@ jobs:
       - run: cargo test --locked
       - run: cargo build --release --locked
       - name: Build application with pinned patches
+        if: inputs.reuse_release == ''
         shell: bash
         run: python scripts/prepare.py "$APP_NAME" --build
       - name: Test PdfCraft patch
-        if: matrix.app == 'pdfcraft'
+        if: matrix.app == 'pdfcraft' && inputs.reuse_release == ''
         run: python scripts/test_patches.py work/pdfcraft
       - name: Package
+        if: inputs.reuse_release == ''
         shell: bash
         run: python scripts/package.py "$APP_NAME" --platform "$TARGET_PLATFORM" --version "$RELEASE_VERSION" --source "work/$APP_NAME"
+      - name: Repackage verified unchanged application
+        if: inputs.reuse_release != ''
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python -m pip install 'cryptography>=46,<49'
+          python scripts/repackage.py "$APP_NAME" --platform "$TARGET_PLATFORM" --version "$RELEASE_VERSION" --base-release "$BASE_RELEASE"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: ${{ matrix.app }}-${{ matrix.platform }}

@@ -9,7 +9,7 @@ clone your fork, and make the following changes before producing your first pack
 | File | Change |
 | --- | --- |
 | `src/lib.rs` | Set `REPOSITORY` to `YOUR-OWNER/YOUR-REPO`. This controls the update feed and allowed asset URLs. |
-| `scripts/package.py` | Change the release-download URL to the same repository; replace the `io.github.xyz9516` macOS bundle identifier prefix with your own. |
+| `scripts/package.py` | Set `REPOSITORY` to the same repository and change `BUNDLE_PREFIX` to your macOS identifier prefix. Repackaging uses these same settings. |
 | `upstreams.json` | Set each application's `repository` and full `commit` hash to your desired source. Keep the existing application keys and target names. |
 | `patches/photocraft/`, `patches/pdfcraft/` | Maintain your patches here; revalidate them against your pinned source. |
 | `release-public-key.txt` | Replace with the public key generated below. Rebuild to embed it. |
@@ -65,7 +65,7 @@ in-place key rotation.
 | 檔案 | 要修改的內容 |
 | --- | --- |
 | `src/lib.rs` | 將 `REPOSITORY` 改為 `你的帳號/你的倉庫`；更新來源與允許的下載網址都由此決定。 |
-| `scripts/package.py` | 將發布下載網址改為同一個倉庫，並把 macOS bundle identifier 的 `io.github.xyz9516` 前綴改成自己的識別名稱。 |
+| `scripts/package.py` | 將 `REPOSITORY` 改成同一個倉庫，並設定自己的 macOS 識別前綴 `BUNDLE_PREFIX`；重新打包流程也共用這些設定。 |
 | `upstreams.json` | 指定自己應用程式 fork 的 `repository` 與完整 `commit` hash；保留現有應用程式鍵值與編譯目標名稱。 |
 | `patches/photocraft/`、`patches/pdfcraft/` | 放入自己維護的 patch，確認能套用至指定原始碼。 |
 | `release-public-key.txt` | 換成自己的發布驗證公鑰，再重新編譯。 |

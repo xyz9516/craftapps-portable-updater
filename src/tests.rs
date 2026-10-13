@@ -165,3 +165,79 @@ fn extraction_rejects_traversal_without_writing_outside_staging() {
     assert!(extract(&archive, &temp.path().join("staging")).is_err());
     assert!(!temp.path().join("escape.txt").exists());
 }
+
+#[test]
+fn portable_archive_supports_legacy_readers_and_only_installs_inner_payload() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().join("installed");
+    let old = fixture(&root.join("versions/old"), "0.1.0", "pdfcraft");
+    atomic_json(
+        &root.join("state.json"),
+        &State {
+            schema: 1,
+            current: "old".into(),
+            previous: None,
+        },
+    )
+    .unwrap();
+    fs::create_dir(root.join("data")).unwrap();
+    fs::write(root.join("data/settings"), "keep user settings").unwrap();
+    fs::write(root.join("bootstrap"), "keep installed bootstrap").unwrap();
+
+    let staged = temp.path().join("portable");
+    let inner = staged.join("versions/0.1.1");
+    let new = fixture(&inner, "0.1.1", "pdfcraft");
+    atomic_json(
+        &staged.join("state.json"),
+        &State {
+            schema: 1,
+            current: "0.1.1".into(),
+            previous: None,
+        },
+    )
+    .unwrap();
+    fs::create_dir(staged.join("data")).unwrap();
+    fs::write(
+        staged.join("data/settings"),
+        "must not overwrite user settings",
+    )
+    .unwrap();
+    let compatibility = Build {
+        executable: format!("versions/0.1.1/{}", new.executable),
+        ..new
+    };
+    atomic_json(&staged.join("build.json"), &compatibility).unwrap();
+    fs::copy(inner.join(runtime_name()), staged.join(runtime_name())).unwrap();
+    assert!(
+        read_build(&staged).is_ok(),
+        "v0.1.0 readers accept the complete portable tree"
+    );
+    let selected = update_payload(&staged).unwrap();
+    assert_eq!(selected, inner);
+    let channel = Channel {
+        schema: 1,
+        version: "0.1.1".into(),
+        assets: vec![],
+    };
+    let asset = Asset {
+        app: old.app.clone(),
+        platform: old.platform.clone(),
+        url: String::new(),
+        sha256: "d".repeat(64),
+        size: 1,
+    };
+    activate(&root, &selected, &channel, &asset, &old).unwrap();
+    let installed = root
+        .join("versions")
+        .join(read_state(&root).unwrap().current);
+    assert!(!installed.join("state.json").exists());
+    assert!(!installed.join("data").exists());
+    assert_eq!(
+        fs::read_to_string(root.join("data/settings")).unwrap(),
+        "keep user settings"
+    );
+    assert_eq!(
+        fs::read_to_string(root.join("bootstrap")).unwrap(),
+        "keep installed bootstrap"
+    );
+}

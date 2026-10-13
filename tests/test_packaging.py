@@ -33,4 +33,25 @@ class Packaging(unittest.TestCase):
         self.assertNotIn('APPDATA',source)
         self.assertIn("(tree / 'data').mkdir()",source)
 
+    def test_one_portable_archive_serves_new_and_original_updaters(self):
+        with tempfile.TemporaryDirectory() as temp:
+            out=Path(temp)
+            tree=out/'portable'
+            payload=tree/'versions/0.1.1'
+            payload.mkdir(parents=True)
+            (payload/'craft-runtime.exe').write_bytes(b'updater')
+            (payload/'pdfcraft.exe').write_bytes(b'application')
+            (payload/'build.json').write_text(json.dumps({'executable':'pdfcraft.exe','version':'0.1.1'}))
+            (tree/'state.json').write_text(json.dumps({'schema':1,'current':'0.1.1','previous':None}))
+            package.finish_package('pdfcraft','windows-x64','0.1.1',tree,payload,out)
+            archives=list(out.glob('*.zip'))
+            self.assertEqual([p.name for p in archives],['pdfcraft-windows-x64-0.1.1-portable.zip'])
+            with zipfile.ZipFile(archives[0]) as z:
+                compat=json.loads(z.read('build.json'))
+                self.assertEqual(compat['executable'],'versions/0.1.1/pdfcraft.exe')
+                self.assertEqual(z.read(compat['executable']),b'application')
+                self.assertEqual(z.read('craft-runtime.exe'),b'updater')
+            metadata=json.loads((out/'pdfcraft-windows-x64.json').read_text())
+            self.assertTrue(metadata['url'].endswith(archives[0].name))
+
 if __name__=='__main__': unittest.main()

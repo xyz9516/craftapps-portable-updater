@@ -1,6 +1,8 @@
 CraftApps Portable - community builds maintained by xyz9516
 
 Extract the ENTIRE ZIP to a writable directory before launching.
+The portable ZIP includes automatic updates. No separate update ZIP is needed.
+Downloads: https://github.com/xyz9516/craftapps-portable-updater/releases/latest
 Windows: open PhotoCraft.exe or PdfCraft.exe.
 Mac: open the top-level PhotoCraft.app or PdfCraft.app.
 Keep the launcher, state.json, versions/, and data/ together when moving it.
@@ -19,5 +21,6 @@ Gatekeeper may prevent opening; read the macOS notes before using test builds.
 Windows builds do not have publisher code-signing certificates either.
 
 This project is independent of the upstream authors and their official releases.
+Its release number versions our updater/packaging, not the upstream applications.
 Docs: https://github.com/xyz9516/craftapps-portable-updater
 Traditional Chinese: README.zh-TW.md in that repository.

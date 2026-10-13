@@ -50,6 +50,17 @@ Published versions are immutable: do not replace an asset under an existing tag.
 Fixes, including updater-only patches, require a new version and release. An app
 already running remains on its current binary until relaunched.
 
+The release number versions this updater/packaging project, not PhotoCraft or
+PdfCraft. There is one portable ZIP per app/platform; the signed manifest points
+at that same ZIP for automatic updates. No separate update ZIP is produced.
+
+For an updater-only fix, set the workflow's optional `reuse_release` input to a
+previous signed release, e.g. `v0.1.0`. Repackaging verifies its Ed25519 manifest,
+archive hash, app/platform identity, upstream commit and patch digest before
+reusing the binaries. It rebuilds the native launcher/runtime and tests each app's
+version command. If application source or patches changed, omit this input and
+perform the full build.
+
 The daily upstream check compares GitHub `main` heads with `upstreams.json` and
 uploads a report. It does not auto-merge upstream changes or publish them. To adopt
 new upstream code, edit the full commit pins, revalidate patches, and release.

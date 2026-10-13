@@ -188,19 +188,60 @@ pub fn asset_url(url: &str) -> Result<()> {
 
 fn agent() -> ureq::Agent {
     ureq::Agent::config_builder()
-        .timeout_global(Some(Duration::from_secs(900)))
+        .timeout_global(Some(Duration::from_secs(3600)))
+        .timeout_connect(Some(Duration::from_secs(20)))
+        .timeout_recv_response(Some(Duration::from_secs(30)))
         .build()
         .into()
 }
 
 pub fn download(url: &str, max: u64, out: &mut impl Write) -> Result<u64> {
+    download_progress(url, max, out, |_| {})
+}
+
+fn download_progress(
+    url: &str,
+    max: u64,
+    out: &mut impl Write,
+    mut progress: impl FnMut(u64),
+) -> Result<u64> {
     let mut response = agent()
         .get(url)
         .header("User-Agent", "CraftApps-Portable-Updater")
         .call()?;
-    let size = std::io::copy(&mut response.body_mut().as_reader().take(max + 1), out)?;
-    ensure!(size <= max, "Download exceeds size limit");
+    let mut reader = response.body_mut().as_reader().take(max + 1);
+    let mut size = 0;
+    let mut reported = 0;
+    let mut buffer = [0u8; 65536];
+    loop {
+        let count = reader.read(&mut buffer)?;
+        if count == 0 {
+            break;
+        }
+        size += count as u64;
+        ensure!(size <= max, "Download exceeds size limit");
+        out.write_all(&buffer[..count])?;
+        if size - reported >= 4 * 1024 * 1024 {
+            progress(size);
+            reported = size;
+        }
+    }
     Ok(size)
+}
+
+// A portable archive is also the update artifact. Only its active version is
+// installed; its initial state, bootstrap and data directory never replace the
+// user's existing installation. Flat v0.1.0 payloads remain readable.
+pub fn update_payload(staged: &Path) -> Result<PathBuf> {
+    if staged.join("state.json").is_file() {
+        let state = read_state(staged)?;
+        let payload = staged.join("versions").join(state.current);
+        read_build(&payload)?;
+        Ok(payload)
+    } else {
+        read_build(staged)?;
+        Ok(staged.to_path_buf())
+    }
 }
 
 pub fn sha256_file(path: &Path) -> Result<String> {
@@ -341,8 +382,11 @@ pub fn update(root: &Path) -> Result<()> {
     let temp = tempfile::tempdir_in(root)?;
     let archive = temp.path().join("update.zip");
     let mut file = fs::File::create(&archive)?;
+    log(root, &format!("Downloading {} bytes", asset.size));
     ensure!(
-        download(&asset.url, asset.size, &mut file)? == asset.size,
+        download_progress(&asset.url, asset.size, &mut file, |size| {
+            log(root, &format!("Downloaded {size}/{} bytes", asset.size));
+        })? == asset.size,
         "Asset size mismatch"
     );
     file.sync_all()?;
@@ -354,7 +398,8 @@ pub fn update(root: &Path) -> Result<()> {
     let staged = temp.path().join("payload");
     fs::create_dir(&staged)?;
     extract(&archive, &staged)?;
-    activate(root, &staged, &channel, asset, &current)?;
+    let payload = update_payload(&staged)?;
+    activate(root, &payload, &channel, asset, &current)?;
     log(
         root,
         &format!("Version {} is ready for the next launch", channel.version),
